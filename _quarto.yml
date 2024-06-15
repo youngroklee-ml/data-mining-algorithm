@@ -1,0 +1,16 @@
+project:
+  type: book
+
+book:
+  title: "Data mining algorithm"
+  author: "Youngrok Lee"
+  date: today
+  chapters:
+    - index.qmd
+
+format:
+  html:
+    theme: cosmo
+
+
+
