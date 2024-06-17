@@ -8,3 +8,4 @@ _book
 *.html
 *.qmd_
 *.bib_
+.DS_store
