@@ -1,0 +1,107 @@
+# Regularized regression
+
+## Examples 3.1 - 3.2
+
+### Load data
+
+```{r}
+dat1 <- read.csv("data/ch3_dat1.csv")
+x <- as.matrix(dat1[, 1:2])
+y <- dat1$y
+```
+
+### Standardize input data matrix
+
+```{r}
+std_x <- scale(x)
+```
+
+
+### Ex 3.1: Lasso
+
+Create `lasso()` function with three parameters:
+
+- `x`: input data matrix
+- `y`: a vector of response variable
+- `lambda`: amount of regularization
+
+```{r}
+lasso <- function(x, y, lambda) {
+  # add intercept coefficient
+  betas <- rep(0, ncol(x) + 1)
+  
+  # optimize coefficient to minimize objective function
+  # passed as the second argument of `optim()`
+  # NOTE: do not regularize intercept
+  res <- optim(
+    betas,
+    function(betas, x, y, lambda) {
+      sum((y - cbind(1, x) %*% betas)^2) + lambda * sum(abs(betas[-1]))
+    },
+    x = x,
+    y = y,
+    lambda = lambda,
+    method = "BFGS"
+  )
+  
+  # return cofficients estimates
+  res$par
+}
+```
+
+Let's apply to example data by varying `lambda`.
+
+```{r}
+lambda <- seq(0, 3, by = 1)
+
+for (i in lambda) {
+  print(round(lasso(std_x, y, i), 4))
+}
+```
+
+
+### Ex 3.1: Ridge
+
+Create `ridge()` function with the same three parameters:
+
+- `x`: input data matrix
+- `y`: a vector of response variable
+- `lambda`: amount of regularization
+
+The `ridge()` function is very similar to `lasso()`. The only difference is the regularization term in the objective function of `optim()` call.
+
+
+```{r}
+ridge <- function(x, y, lambda) {
+  # add intercept coefficient
+  betas <- rep(0, ncol(x) + 1)
+  
+  # optimize coefficient to minimize objective function
+  # passed as the second argument of `optim()`
+  # NOTE: do not regularize intercept
+  res <- optim(
+    betas,
+    function(betas, x, y, lambda) {
+      sum((y - cbind(1, x) %*% betas)^2) + lambda * sum((betas[-1])^2)
+    },
+    x = x,
+    y = y,
+    lambda = lambda,
+    method = "BFGS"
+  )
+  
+  # return cofficients estimates
+  res$par
+}
+```
+
+Let's apply to example data by varying `lambda`.
+
+```{r}
+lambda <- seq(0, 3, by = 1)
+
+for (i in lambda) {
+  print(round(ridge(std_x, y, i), 4))
+}
+```
+

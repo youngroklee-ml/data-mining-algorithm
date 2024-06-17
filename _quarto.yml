@@ -7,6 +7,9 @@ book:
   date: today
   chapters:
     - index.qmd
+    - ch03_regularized_regression.qmd
+
+number-sections: false
 
 format:
   html:
