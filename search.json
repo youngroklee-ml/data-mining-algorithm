@@ -4,9 +4,29 @@
     "href": "index.html",
     "title": "Data mining algorithm",
     "section": "",
-    "text": "Preface\nThis is a Quarto book to provide step-by-step demonstration of data mining algorithm implementation.",
+    "text": "Preface\nThis is a Quarto book to provide step-by-step demonstration of data mining algorithm implementation to reproduce examples on https://youngroklee-ml.github.io/data-mining-techniques/.",
     "crumbs": [
       "Preface"
+    ]
+  },
+  {
+    "objectID": "ch03_regularized_regression.html",
+    "href": "ch03_regularized_regression.html",
+    "title": "Regularized regression",
+    "section": "",
+    "text": "Examples 3.1 - 3.2",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Regularized regression</span>"
+    ]
+  },
+  {
+    "objectID": "ch03_regularized_regression.html#examples-3.1---3.2",
+    "href": "ch03_regularized_regression.html#examples-3.1---3.2",
+    "title": "Regularized regression",
+    "section": "",
+    "text": "Load data\n\ndat1 &lt;- read.csv(\"data/ch3_dat1.csv\")\nx &lt;- as.matrix(dat1[, 1:2])\ny &lt;- dat1$y\n\n\n\nStandardize input data matrix\n\nstd_x &lt;- scale(x)\n\n\n\nEx 3.1: Lasso\nCreate lasso() function with three parameters:\n\nx: input data matrix\ny: a vector of response variable\nlambda: amount of regularization\n\n\nlasso &lt;- function(x, y, lambda) {\n  # add intercept coefficient\n  betas &lt;- rep(0, ncol(x) + 1)\n  \n  # optimize coefficient to minimize objective function\n  # passed as the second argument of `optim()`\n  # NOTE: do not regularize intercept\n  res &lt;- optim(\n    betas,\n    function(betas, x, y, lambda) {\n      sum((y - cbind(1, x) %*% betas)^2) + lambda * sum(abs(betas[-1]))\n    },\n    x = x,\n    y = y,\n    lambda = lambda,\n    method = \"BFGS\"\n  )\n  \n  # return cofficients estimates\n  res$par\n}\n\nLet’s apply to example data by varying lambda.\n\nlambda &lt;- seq(0, 3, by = 1)\n\nfor (i in lambda) {\n  print(round(lasso(std_x, y, i), 4))\n}\n\n[1] 0.0000 2.0201 0.1339\n[1] 0.0000 1.9736 0.0875\n[1] 0.0000 1.9272 0.0410\n[1] 0.0000 1.8757 0.0008\n\n\n\n\nEx 3.1: Ridge\nCreate ridge() function with the same three parameters:\n\nx: input data matrix\ny: a vector of response variable\nlambda: amount of regularization\n\nThe ridge() function is very similar to lasso(). The only difference is the regularization term in the objective function of optim() call.\n\nridge &lt;- function(x, y, lambda) {\n  # add intercept coefficient\n  betas &lt;- rep(0, ncol(x) + 1)\n  \n  # optimize coefficient to minimize objective function\n  # passed as the second argument of `optim()`\n  # NOTE: do not regularize intercept\n  res &lt;- optim(\n    betas,\n    function(betas, x, y, lambda) {\n      sum((y - cbind(1, x) %*% betas)^2) + lambda * sum((betas[-1])^2)\n    },\n    x = x,\n    y = y,\n    lambda = lambda,\n    method = \"BFGS\"\n  )\n  \n  # return cofficients estimates\n  res$par\n}\n\nLet’s apply to example data by varying lambda.\n\nlambda &lt;- seq(0, 3, by = 1)\n\nfor (i in lambda) {\n  print(round(ridge(std_x, y, i), 4))\n}\n\n[1] 0.0000 2.0201 0.1339\n[1] 0.0000 1.5071 0.4638\n[1] 0.0000 1.2688 0.5477\n[1] 0.0000 1.1177 0.5667",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Regularized regression</span>"
     ]
   }
 ]
