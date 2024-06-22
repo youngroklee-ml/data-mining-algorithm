@@ -36,7 +36,7 @@ nipals_pca <- function(X, ncomp = NULL) {
     
     while (TRUE) {
       # compute h-th loading vector
-      Vh[, h] <- t(t(Th[, h]) %*% X / (norm(Th[, h], "2") ^ 2))
+      Vh[, h] <- t(t(Th[, h]) %*% X / (norm(Th[, h], "2")^2))
       # normalize h-th loading vector
       Vh[, h] <- Vh[, h] / norm(Vh[, h], "2")
       # compute new h-th principal component score
@@ -114,7 +114,7 @@ nipals_plsr <- function(X, y, ncomp = NULL) {
 
   for (a in seq_len(ncomp)) {
     # compute weight vector for a-th component
-    Wmat[, a] <- 1 / sum(y ^ 2) * (t(X) %*% y)
+    Wmat[, a] <- 1 / sum(y^2) * (t(X) %*% y)
     # normalize weight vector
     Wmat[, a] <- Wmat[, a] / norm(Wmat[, a], "2")
 
@@ -122,7 +122,7 @@ nipals_plsr <- function(X, y, ncomp = NULL) {
     Tmat[, a] <- X %*% Wmat[, a]
 
     # compute a-th loading for input
-    Pmat[, a] <- 1 / sum(Tmat[, a] ^ 2) * (t(X) %*% Tmat[, a])
+    Pmat[, a] <- 1 / sum(Tmat[, a]^2) * (t(X) %*% Tmat[, a])
 
     # normalize loading vector and adjust latent variable and weight vector
     p_size <- norm(Pmat[, a], "2")
@@ -131,7 +131,7 @@ nipals_plsr <- function(X, y, ncomp = NULL) {
     Wmat[, a] <- Wmat[, a] * p_size
 
     # compute regression coefficient
-    b[a] <- 1 / sum(Tmat[, a] ^ 2) * sum(y * Tmat[, a])
+    b[a] <- 1 / sum(Tmat[, a]^2) * sum(y * Tmat[, a])
 
     # update input matrix and response vector by subtracting a-th latent portion
     X <- X - Tmat[, a] %*% t(Pmat[, a])
