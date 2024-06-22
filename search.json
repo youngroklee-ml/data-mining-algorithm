@@ -10,13 +10,33 @@
     ]
   },
   {
+    "objectID": "ch02_regression.html",
+    "href": "ch02_regression.html",
+    "title": "Regression",
+    "section": "",
+    "text": "Ex 2.9: Stepwise",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Regression</span>"
+    ]
+  },
+  {
+    "objectID": "ch02_regression.html#ex-2.9-stepwise",
+    "href": "ch02_regression.html#ex-2.9-stepwise",
+    "title": "Regression",
+    "section": "",
+    "text": "Load data\n\ndat_ba &lt;- read.csv(\"data/Hitters.csv\")\n\n\n\nTO DO: Create stepwise function",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Regression</span>"
+    ]
+  },
+  {
     "objectID": "ch03_regularized_regression.html",
     "href": "ch03_regularized_regression.html",
     "title": "Regularized regression",
     "section": "",
     "text": "Examples 3.1 - 3.2",
     "crumbs": [
-      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Regularized regression</span>"
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Regularized regression</span>"
     ]
   },
   {
@@ -26,7 +46,37 @@
     "section": "",
     "text": "Load data\n\ndat1 &lt;- read.csv(\"data/ch3_dat1.csv\")\nx &lt;- as.matrix(dat1[, 1:2])\ny &lt;- dat1$y\n\n\n\nStandardize input data matrix\n\nstd_x &lt;- scale(x)\n\n\n\nEx 3.1: Lasso\nCreate lasso() function with three parameters:\n\nx: input data matrix\ny: a vector of response variable\nlambda: amount of regularization\n\n\nlasso &lt;- function(x, y, lambda) {\n  # add intercept coefficient\n  betas &lt;- rep(0, ncol(x) + 1)\n  \n  # optimize coefficient to minimize objective function\n  # passed as the second argument of `optim()`\n  # NOTE: do not regularize intercept\n  res &lt;- optim(\n    betas,\n    function(betas, x, y, lambda) {\n      sum((y - cbind(1, x) %*% betas)^2) + lambda * sum(abs(betas[-1]))\n    },\n    x = x,\n    y = y,\n    lambda = lambda,\n    method = \"BFGS\"\n  )\n  \n  # return cofficients estimates\n  res$par\n}\n\nLet’s apply to example data by varying lambda.\n\nlambda &lt;- seq(0, 3, by = 1)\n\nfor (i in lambda) {\n  print(round(lasso(std_x, y, i), 4))\n}\n\n[1] 0.0000 2.0201 0.1339\n[1] 0.0000 1.9736 0.0875\n[1] 0.0000 1.9272 0.0410\n[1] 0.0000 1.8757 0.0008\n\n\n\n\nEx 3.1: Ridge\nCreate ridge() function with the same three parameters:\n\nx: input data matrix\ny: a vector of response variable\nlambda: amount of regularization\n\nThe ridge() function is very similar to lasso(). The only difference is the regularization term in the objective function of optim() call.\n\nridge &lt;- function(x, y, lambda) {\n  # add intercept coefficient\n  betas &lt;- rep(0, ncol(x) + 1)\n  \n  # optimize coefficient to minimize objective function\n  # passed as the second argument of `optim()`\n  # NOTE: do not regularize intercept\n  res &lt;- optim(\n    betas,\n    function(betas, x, y, lambda) {\n      sum((y - cbind(1, x) %*% betas)^2) + lambda * sum((betas[-1])^2)\n    },\n    x = x,\n    y = y,\n    lambda = lambda,\n    method = \"BFGS\"\n  )\n  \n  # return cofficients estimates\n  res$par\n}\n\nLet’s apply to example data by varying lambda.\n\nlambda &lt;- seq(0, 3, by = 1)\n\nfor (i in lambda) {\n  print(round(ridge(std_x, y, i), 4))\n}\n\n[1] 0.0000 2.0201 0.1339\n[1] 0.0000 1.5071 0.4638\n[1] 0.0000 1.2688 0.5477\n[1] 0.0000 1.1177 0.5667",
     "crumbs": [
-      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Regularized regression</span>"
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Regularized regression</span>"
+    ]
+  },
+  {
+    "objectID": "ch04_dimension_reduction.html",
+    "href": "ch04_dimension_reduction.html",
+    "title": "Dimension reduction",
+    "section": "",
+    "text": "Example 4.10",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Dimension reduction</span>"
+    ]
+  },
+  {
+    "objectID": "ch04_dimension_reduction.html#example-4.10",
+    "href": "ch04_dimension_reduction.html#example-4.10",
+    "title": "Dimension reduction",
+    "section": "",
+    "text": "Load data\n\ndat2 &lt;- read.csv(\"data/ch4_dat2.csv\", fileEncoding = \"euc-kr\")\nx &lt;- as.matrix(dat2[, 2:6])\n\n\n\nStandardize data\n\nscaled_x &lt;- scale(x)\n\n\n\nNIPALS algorithm\n\n#' @param X input data matrix\n#' @param ncomp number of principal components\nnipals_pca &lt;- function(X, ncomp = NULL) {\n  if (is.null(ncomp) || (ncomp &gt; min(dim(X)))) {\n    ncomp &lt;- min(dim(X))\n  }\n\n  Th &lt;- matrix(NA, nrow = nrow(X), ncol = ncomp)\n  Vh &lt;- matrix(NA, nrow = ncol(X), ncol = ncomp)\n\n  for (h in seq_len(ncomp)) {\n    # initialize h-th principal component score\n    j &lt;- sample(ncol(X), 1L)\n    Th[, h] &lt;- X[, j]\n    \n    while (TRUE) {\n      # compute h-th loading vector\n      Vh[, h] &lt;- t(t(Th[, h]) %*% X / (norm(Th[, h], \"2\") ^ 2))\n      # normalize h-th loading vector\n      Vh[, h] &lt;- Vh[, h] / norm(Vh[, h], \"2\")\n      # compute new h-th principal component score\n      th &lt;- X %*% Vh[, h]\n      # check convergence\n      if (all(abs(Th[, h] - th) &lt; .Machine$double.eps^0.5)) break\n      # update h-th principal component score\n      Th[, h] &lt;- th\n    }\n    \n    # update input matrix by subtracting h-th principal component's contribution\n    X &lt;- X - Th[, h] %*% t(Vh[, h])\n  }\n\n  return(list(score = Th, loading = Vh))\n}\n\nLet’s call this function to estimate principal component scores and loadings:\n\nnipals_pca(scaled_x)\n\n$score\n            [,1]       [,2]        [,3]        [,4]         [,5]\n [1,]  1.4870243 -0.6066594  0.63361774  0.29625002  0.020293728\n [2,]  0.2063797  0.0804627  0.04965017 -0.26323513  0.063581475\n [3,] -0.1968538 -0.9704605  0.39507855 -0.27123746  0.103351748\n [4,]  2.3542885  3.5056480 -0.16252732 -0.02524925 -0.249920974\n [5,]  0.8953707 -1.4552899 -1.36265906 -0.20161775 -0.055517165\n [6,]  0.3682082  0.5976313 -0.65857722 -0.27901317  0.060458250\n [7,]  0.9354306  1.4144519  0.82574638 -0.07358976  0.095960908\n [8,] -2.4129727  0.6785064 -0.92207606  0.36161576 -0.062593524\n [9,] -2.6991862  0.7596591  0.45091078  0.21030378  0.168645126\n[10,]  0.4050098 -0.2800099  0.92835441 -0.13993489  0.001811119\n[11,] -1.3958199 -1.1353513  0.09819176 -0.34335126 -0.094986793\n[12,]  1.5381192 -1.1576616  0.07467334  0.29404424  0.052430943\n[13,] -0.3217681  0.2378023 -1.10180230 -0.28507243  0.030666765\n[14,]  2.0306806 -0.9646122 -0.20906176  0.39639758 -0.085778573\n[15,] -3.0389460 -0.8841645  0.77478769  0.04079853 -0.349688463\n[16,] -2.0064062  1.2831337 -0.64388896  0.22077706  0.188366869\n[17,]  0.4211779  0.2987099  1.20644766 -0.11766274  0.068250992\n[18,]  1.4302634 -1.4017959 -0.37686580  0.17977686  0.044667566\n\n$loading\n            [,1]        [,2]          [,3]         [,4]        [,5]\n[1,] -0.07608427  0.77966993 -0.0008915855  0.140755408  0.60540325\n[2,]  0.39463007  0.56541217  0.2953216578 -0.117644175 -0.65078502\n[3,] -0.56970191  0.16228157 -0.2412221032  0.637721888 -0.42921688\n[4,]  0.55982770 -0.19654294  0.2565972867  0.748094312  0.14992181\n[5,]  0.44778451  0.08636803 -0.8881182652  0.003668427 -0.05711464\n\n\nLet’s derive eigenvalues from the results.\n\nnipals_pca(scaled_x)$score |&gt; \n  var() |&gt; \n  diag()\n\n[1] 2.76146225 1.60565318 0.55056305 0.06406316 0.01825836",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Dimension reduction</span>"
+    ]
+  },
+  {
+    "objectID": "ch04_dimension_reduction.html#example-4.14---4.15",
+    "href": "ch04_dimension_reduction.html#example-4.14---4.15",
+    "title": "Dimension reduction",
+    "section": "Example 4.14 - 4.15",
+    "text": "Example 4.14 - 4.15\n\nLoad data\n\ndat3 &lt;- read.csv(file = \"data/ch4_dat3.csv\")\nx &lt;- as.matrix(dat3[, 1:3])\ny &lt;- as.vector(dat3[, 4])\n\n\n\nData preprocessing\n\ncentered_x &lt;- scale(x, scale = FALSE)\ncentered_y &lt;- scale(y, scale = FALSE)\n\n\n\nNIPALS algorithm\n\n#' @param X input data matrix\n#' @param y response variable vector\n#' @param ncomp number of latent components\nnipals_plsr &lt;- function(X, y, ncomp = NULL) {\n  if (is.null(ncomp) || (ncomp &gt; min(dim(X)))) {\n    ncomp &lt;- min(dim(X))\n  }\n\n  Tmat &lt;- matrix(NA, nrow = nrow(X), ncol = ncomp)\n  colnames(Tmat) &lt;- paste0(\"LV\", seq_len(ncomp))\n\n  Wmat &lt;- matrix(NA, nrow = ncol(X), ncol = ncomp)\n  rownames(Wmat) &lt;- colnames(X)\n  colnames(Wmat) &lt;- colnames(Tmat)\n\n  Pmat &lt;- matrix(NA, nrow = ncol(X), ncol = ncomp)\n  rownames(Pmat) &lt;- colnames(X)\n  colnames(Pmat) &lt;- colnames(Tmat)\n\n  b &lt;- vector(\"numeric\", length = ncomp)\n  names(b) &lt;- colnames(Tmat)\n\n  for (a in seq_len(ncomp)) {\n    # compute weight vector for a-th component\n    Wmat[, a] &lt;- 1 / sum(y ^ 2) * (t(X) %*% y)\n    # normalize weight vector\n    Wmat[, a] &lt;- Wmat[, a] / norm(Wmat[, a], \"2\")\n\n    # compute a-th latent variable vector of input\n    Tmat[, a] &lt;- X %*% Wmat[, a]\n\n    # compute a-th loading for input\n    Pmat[, a] &lt;- 1 / sum(Tmat[, a] ^ 2) * (t(X) %*% Tmat[, a])\n\n    # normalize loading vector and adjust latent variable and weight vector\n    p_size &lt;- norm(Pmat[, a], \"2\")\n    Pmat[, a] &lt;- Pmat[, a] / p_size\n    Tmat[, a] &lt;- Tmat[, a] * p_size\n    Wmat[, a] &lt;- Wmat[, a] * p_size\n\n    # compute regression coefficient\n    b[a] &lt;- 1 / sum(Tmat[, a] ^ 2) * sum(y * Tmat[, a])\n\n    # update input matrix and response vector by subtracting a-th latent portion\n    X &lt;- X - Tmat[, a] %*% t(Pmat[, a])\n    y &lt;- y - Tmat[, a] %*% t(b[a])\n  }\n\n  return(list(score = Tmat, weight = Wmat, loading_x = Pmat, loading_y = b))\n}\n\nLet’s call this function to estimate PLS model.\n\nnipals_plsr(centered_x, centered_y, ncomp = 2)\n\n$score\n            LV1        LV2\n[1,] -6.3243200 -2.0380766\n[2,] -7.8584372 -0.5965965\n[3,] -3.6317877  1.5429616\n[4,]  0.9079469  1.9745198\n[5,]  5.7294582  0.7158171\n[6,] 11.1771398 -1.5986253\n\n$weight\n          LV1       LV2\nx1  0.2817766 0.6579688\nx2  0.3130851 0.6388931\nx3 -0.9079469 0.4245052\n\n$loading_x\n          LV1       LV2\nx1  0.2537679 0.5424154\nx2  0.2858180 0.7279599\nx3 -0.9240724 0.4193565\n\n$loading_y\n     LV1      LV2 \n2.924570 2.464658",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Dimension reduction</span>"
     ]
   }
 ]
