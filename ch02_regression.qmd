@@ -1,0 +1,12 @@
+# Regression
+
+## Ex 2.9: Stepwise
+
+### Load data
+
+```{r}
+dat_ba <- read.csv("data/Hitters.csv")
+```
+
+### TO DO: Create stepwise function
+
