@@ -60,7 +60,7 @@ for (i in lambda) {
 ```
 
 
-### Ex 3.1: Ridge
+### Ex 3.2: Ridge
 
 Create `ridge()` function with the same three parameters:
 
