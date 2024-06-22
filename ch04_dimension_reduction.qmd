@@ -1,0 +1,150 @@
+# Dimension reduction
+
+## Example 4.10
+
+### Load data
+
+```{r}
+dat2 <- read.csv("data/ch4_dat2.csv", fileEncoding = "euc-kr")
+x <- as.matrix(dat2[, 2:6])
+```
+
+### Standardize data
+
+```{r}
+scaled_x <- scale(x)
+```
+
+
+### NIPALS algorithm
+
+```{r}
+#' @param X input data matrix
+#' @param ncomp number of principal components
+nipals_pca <- function(X, ncomp = NULL) {
+  if (is.null(ncomp) || (ncomp > min(dim(X)))) {
+    ncomp <- min(dim(X))
+  }
+
+  Th <- matrix(NA, nrow = nrow(X), ncol = ncomp)
+  Vh <- matrix(NA, nrow = ncol(X), ncol = ncomp)
+
+  for (h in seq_len(ncomp)) {
+    # initialize h-th principal component score
+    j <- sample(ncol(X), 1L)
+    Th[, h] <- X[, j]
+    
+    while (TRUE) {
+      # compute h-th loading vector
+      Vh[, h] <- t(t(Th[, h]) %*% X / (norm(Th[, h], "2") ^ 2))
+      # normalize h-th loading vector
+      Vh[, h] <- Vh[, h] / norm(Vh[, h], "2")
+      # compute new h-th principal component score
+      th <- X %*% Vh[, h]
+      # check convergence
+      if (all(abs(Th[, h] - th) < .Machine$double.eps^0.5)) break
+      # update h-th principal component score
+      Th[, h] <- th
+    }
+    
+    # update input matrix by subtracting h-th principal component's contribution
+    X <- X - Th[, h] %*% t(Vh[, h])
+  }
+
+  return(list(score = Th, loading = Vh))
+}
+```
+
+Let's call this function to estimate principal component scores and loadings:
+
+```{r}
+nipals_pca(scaled_x)
+```
+
+Let's derive eigenvalues from the results.
+
+```{r}
+nipals_pca(scaled_x)$score |> 
+  var() |> 
+  diag()
+```
+
+
+## Example 4.14 - 4.15
+
+### Load data
+
+```{r}
+dat3 <- read.csv(file = "data/ch4_dat3.csv")
+x <- as.matrix(dat3[, 1:3])
+y <- as.vector(dat3[, 4])
+```
+
+### Data preprocessing
+
+```{r}
+centered_x <- scale(x, scale = FALSE)
+centered_y <- scale(y, scale = FALSE)
+```
+
+### NIPALS algorithm
+
+```{r}
+#' @param X input data matrix
+#' @param y response variable vector
+#' @param ncomp number of latent components
+nipals_plsr <- function(X, y, ncomp = NULL) {
+  if (is.null(ncomp) || (ncomp > min(dim(X)))) {
+    ncomp <- min(dim(X))
+  }
+
+  Tmat <- matrix(NA, nrow = nrow(X), ncol = ncomp)
+  colnames(Tmat) <- paste0("LV", seq_len(ncomp))
+
+  Wmat <- matrix(NA, nrow = ncol(X), ncol = ncomp)
+  rownames(Wmat) <- colnames(X)
+  colnames(Wmat) <- colnames(Tmat)
+
+  Pmat <- matrix(NA, nrow = ncol(X), ncol = ncomp)
+  rownames(Pmat) <- colnames(X)
+  colnames(Pmat) <- colnames(Tmat)
+
+  b <- vector("numeric", length = ncomp)
+  names(b) <- colnames(Tmat)
+
+  for (a in seq_len(ncomp)) {
+    # compute weight vector for a-th component
+    Wmat[, a] <- 1 / sum(y ^ 2) * (t(X) %*% y)
+    # normalize weight vector
+    Wmat[, a] <- Wmat[, a] / norm(Wmat[, a], "2")
+
+    # compute a-th latent variable vector of input
+    Tmat[, a] <- X %*% Wmat[, a]
+
+    # compute a-th loading for input
+    Pmat[, a] <- 1 / sum(Tmat[, a] ^ 2) * (t(X) %*% Tmat[, a])
+
+    # normalize loading vector and adjust latent variable and weight vector
+    p_size <- norm(Pmat[, a], "2")
+    Pmat[, a] <- Pmat[, a] / p_size
+    Tmat[, a] <- Tmat[, a] * p_size
+    Wmat[, a] <- Wmat[, a] * p_size
+
+    # compute regression coefficient
+    b[a] <- 1 / sum(Tmat[, a] ^ 2) * sum(y * Tmat[, a])
+
+    # update input matrix and response vector by subtracting a-th latent portion
+    X <- X - Tmat[, a] %*% t(Pmat[, a])
+    y <- y - Tmat[, a] %*% t(b[a])
+  }
+
+  return(list(score = Tmat, weight = Wmat, loading_x = Pmat, loading_y = b))
+}
+```
+
+Let's call this function to estimate PLS model.
+
+```{r}
+nipals_plsr(centered_x, centered_y, ncomp = 2)
+```
+
