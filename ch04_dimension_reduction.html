@@ -242,7 +242,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> (<span class="cn">TRUE</span>) {</span>
 <span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>      <span class="co"># compute h-th loading vector</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>      Vh[, h] <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">t</span>(Th[, h]) <span class="sc">%*%</span> X <span class="sc">/</span> (<span class="fu">norm</span>(Th[, h], <span class="st">"2"</span>) <span class="sc">^</span> <span class="dv">2</span>))</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>      Vh[, h] <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">t</span>(Th[, h]) <span class="sc">%*%</span> X <span class="sc">/</span> (<span class="fu">norm</span>(Th[, h], <span class="st">"2"</span>)<span class="sc">^</span><span class="dv">2</span>))</span>
 <span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>      <span class="co"># normalize h-th loading vector</span></span>
 <span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>      Vh[, h] <span class="ot">&lt;-</span> Vh[, h] <span class="sc">/</span> <span class="fu">norm</span>(Vh[, h], <span class="st">"2"</span>)</span>
 <span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>      <span class="co"># compute new h-th principal component score</span></span>
@@ -266,32 +266,32 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output cell-output-stdout">
 <pre><code>$score
             [,1]       [,2]        [,3]        [,4]         [,5]
- [1,]  1.4870243 -0.6066594  0.63361774  0.29625002  0.020293728
- [2,]  0.2063797  0.0804627  0.04965017 -0.26323513  0.063581475
- [3,] -0.1968538 -0.9704605  0.39507855 -0.27123746  0.103351748
- [4,]  2.3542885  3.5056480 -0.16252732 -0.02524925 -0.249920974
- [5,]  0.8953707 -1.4552899 -1.36265906 -0.20161775 -0.055517165
- [6,]  0.3682082  0.5976313 -0.65857722 -0.27901317  0.060458250
- [7,]  0.9354306  1.4144519  0.82574638 -0.07358976  0.095960908
- [8,] -2.4129727  0.6785064 -0.92207606  0.36161576 -0.062593524
- [9,] -2.6991862  0.7596591  0.45091078  0.21030378  0.168645126
-[10,]  0.4050098 -0.2800099  0.92835441 -0.13993489  0.001811119
-[11,] -1.3958199 -1.1353513  0.09819176 -0.34335126 -0.094986793
-[12,]  1.5381192 -1.1576616  0.07467334  0.29404424  0.052430943
-[13,] -0.3217681  0.2378023 -1.10180230 -0.28507243  0.030666765
-[14,]  2.0306806 -0.9646122 -0.20906176  0.39639758 -0.085778573
-[15,] -3.0389460 -0.8841645  0.77478769  0.04079853 -0.349688463
-[16,] -2.0064062  1.2831337 -0.64388896  0.22077706  0.188366869
-[17,]  0.4211779  0.2987099  1.20644766 -0.11766274  0.068250992
-[18,]  1.4302634 -1.4017959 -0.37686580  0.17977686  0.044667566
+ [1,] -1.4870243 -0.6066594  0.63361774  0.29625002 -0.020293728
+ [2,] -0.2063797  0.0804627  0.04965018 -0.26323513 -0.063581475
+ [3,]  0.1968538 -0.9704605  0.39507856 -0.27123746 -0.103351748
+ [4,] -2.3542884  3.5056480 -0.16252734 -0.02524925  0.249920974
+ [5,] -0.8953708 -1.4552900 -1.36265905 -0.20161775  0.055517165
+ [6,] -0.3682082  0.5976313 -0.65857722 -0.27901317 -0.060458250
+ [7,] -0.9354306  1.4144520  0.82574637 -0.07358976 -0.095960908
+ [8,]  2.4129728  0.6785064 -0.92207607  0.36161576  0.062593524
+ [9,]  2.6991862  0.7596591  0.45091077  0.21030378 -0.168645126
+[10,] -0.4050098 -0.2800099  0.92835441 -0.13993488 -0.001811119
+[11,]  1.3958199 -1.1353513  0.09819178 -0.34335126  0.094986793
+[12,] -1.5381192 -1.1576616  0.07467334  0.29404424 -0.052430943
+[13,]  0.3217681  0.2378023 -1.10180230 -0.28507243 -0.030666765
+[14,] -2.0306806 -0.9646122 -0.20906176  0.39639758  0.085778573
+[15,]  3.0389460 -0.8841645  0.77478770  0.04079853  0.349688463
+[16,]  2.0064063  1.2831337 -0.64388897  0.22077705 -0.188366869
+[17,] -0.4211779  0.2987099  1.20644766 -0.11766274 -0.068250992
+[18,] -1.4302634 -1.4017959 -0.37686579  0.17977686 -0.044667566
 
 $loading
             [,1]        [,2]          [,3]         [,4]        [,5]
-[1,] -0.07608427  0.77966993 -0.0008915855  0.140755408  0.60540325
-[2,]  0.39463007  0.56541217  0.2953216578 -0.117644175 -0.65078502
-[3,] -0.56970191  0.16228157 -0.2412221032  0.637721888 -0.42921688
-[4,]  0.55982770 -0.19654294  0.2565972867  0.748094312  0.14992181
-[5,]  0.44778451  0.08636803 -0.8881182652  0.003668427 -0.05711464</code></pre>
+[1,]  0.07608428  0.77966993 -0.0008916028  0.140755408 -0.60540325
+[2,] -0.39463007  0.56541218  0.2953216458 -0.117644168  0.65078502
+[3,]  0.56970191  0.16228156 -0.2412221085  0.637721882  0.42921688
+[4,] -0.55982770 -0.19654293  0.2565972888  0.748094318 -0.14992181
+[5,] -0.44778451  0.08636803 -0.8881182671  0.003668405  0.05711464</code></pre>
 </div>
 </div>
 <p>Let’s derive eigenvalues from the results.</p>
@@ -349,7 +349,7 @@ $loading
 <span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (a <span class="cf">in</span> <span class="fu">seq_len</span>(ncomp)) {</span>
 <span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>    <span class="co"># compute weight vector for a-th component</span></span>
-<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>    Wmat[, a] <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> <span class="fu">sum</span>(y <span class="sc">^</span> <span class="dv">2</span>) <span class="sc">*</span> (<span class="fu">t</span>(X) <span class="sc">%*%</span> y)</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>    Wmat[, a] <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> <span class="fu">sum</span>(y<span class="sc">^</span><span class="dv">2</span>) <span class="sc">*</span> (<span class="fu">t</span>(X) <span class="sc">%*%</span> y)</span>
 <span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>    <span class="co"># normalize weight vector</span></span>
 <span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>    Wmat[, a] <span class="ot">&lt;-</span> Wmat[, a] <span class="sc">/</span> <span class="fu">norm</span>(Wmat[, a], <span class="st">"2"</span>)</span>
 <span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a></span>
@@ -357,7 +357,7 @@ $loading
 <span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>    Tmat[, a] <span class="ot">&lt;-</span> X <span class="sc">%*%</span> Wmat[, a]</span>
 <span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>    <span class="co"># compute a-th loading for input</span></span>
-<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>    Pmat[, a] <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> <span class="fu">sum</span>(Tmat[, a] <span class="sc">^</span> <span class="dv">2</span>) <span class="sc">*</span> (<span class="fu">t</span>(X) <span class="sc">%*%</span> Tmat[, a])</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>    Pmat[, a] <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> <span class="fu">sum</span>(Tmat[, a]<span class="sc">^</span><span class="dv">2</span>) <span class="sc">*</span> (<span class="fu">t</span>(X) <span class="sc">%*%</span> Tmat[, a])</span>
 <span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>    <span class="co"># normalize loading vector and adjust latent variable and weight vector</span></span>
 <span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>    p_size <span class="ot">&lt;-</span> <span class="fu">norm</span>(Pmat[, a], <span class="st">"2"</span>)</span>
@@ -366,7 +366,7 @@ $loading
 <span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>    Wmat[, a] <span class="ot">&lt;-</span> Wmat[, a] <span class="sc">*</span> p_size</span>
 <span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a>    <span class="co"># compute regression coefficient</span></span>
-<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>    b[a] <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> <span class="fu">sum</span>(Tmat[, a] <span class="sc">^</span> <span class="dv">2</span>) <span class="sc">*</span> <span class="fu">sum</span>(y <span class="sc">*</span> Tmat[, a])</span>
+<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>    b[a] <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> <span class="fu">sum</span>(Tmat[, a]<span class="sc">^</span><span class="dv">2</span>) <span class="sc">*</span> <span class="fu">sum</span>(y <span class="sc">*</span> Tmat[, a])</span>
 <span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a>    <span class="co"># update input matrix and response vector by subtracting a-th latent portion</span></span>
 <span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>    X <span class="ot">&lt;-</span> X <span class="sc">-</span> Tmat[, a] <span class="sc">%*%</span> <span class="fu">t</span>(Pmat[, a])</span>
