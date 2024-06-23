@@ -8,5 +8,122 @@
 dat_ba <- read.csv("data/Hitters.csv")
 ```
 
-### TO DO: Create stepwise function
+### Create stepwise function
+
+```{r}
+stepwise <- function(data, yvar, xvars, p_add = 0.3, p_drop = 0.3, niter = 100) {
+  # initialize
+  included = c()
+  remaining <- setdiff(xvars, included)
+
+  # a function to create `lm()` formula
+  make_formula <- function(yvar, xvars) {
+    if (length(xvars) == 0) {
+      res <- as.formula(paste(yvar, "~ 1")) # intercept only
+    } else {
+      res <- as.formula(paste(yvar, "~", paste(xvars, collapse = "+")))
+    }
+  
+    res
+  }
+
+  # initial model
+  current_model <- lm(make_formula(yvar, included), data = data)
+
+  # iterative process  
+  for (i in seq_len(niter)) {
+    previously_included <- included
+  
+    cat("Iteration", i, "forward step\n")
+  
+    # forward step
+    add_step <- add1(
+      current_model, 
+      scope = make_formula(yvar, xvars), 
+      test = "F", 
+      k = 0
+    )
+  
+    # select a candidate with the largest F-statistics
+    add_candidate <- which.max(add_step[["F value"]])
+  
+    # update a model if addition criteria is satisfied
+    if (add_step[["Pr(>F)"]][add_candidate] < p_add) {
+      varname <- rownames(add_step)[add_candidate]
+      remaining <- setdiff(remaining, varname)
+      included <- union(included, varname)
+      current_model <- lm(
+        make_formula(yvar, included),
+        data = data
+      )
+      cat(". Add variable:", varname, "\n")
+    } else {
+      cat(". No variable was added.\n")
+    }
+
+    cat("Iteration", i, "backward step\n")
+    # backward step
+    drop_step <- drop1(
+      current_model, 
+      scope = make_formula(yvar, included), 
+      test = "F", 
+      k = 0
+    )
+  
+    # select a candidate with the smallest F-statistics
+    drop_candidate <- which.min(drop_step[["F value"]])
+  
+    # update a model if removal criteria is satisfied
+    if (drop_step[["Pr(>F)"]][drop_candidate] > p_drop) {
+      varname <- rownames(drop_step)[drop_candidate]
+      remaining <- union(remaining, varname)
+      included <- setdiff(included, varname)
+      current_model <- lm(
+        make_formula(yvar, included),
+        data = data
+      )
+      cat(". Add variable:", varname, "\n")
+    } else {
+      cat(". No variable was removed.\n")
+    }
+    cat("----------------------------\n")
+
+    if (length(setdiff(included, previously_included)) == 0) { # no changes
+      break
+    }
+  
+    if (length(remaining) == 0) { # no additional candidate
+      break
+    }
+  }
+  
+  # return final model object
+  current_model
+}
+```
+
+
+### Run stepwise regression
+
+Four variables are added with default argument `p_add = 0.3` and `p_drop = 0.3`.
+
+```{r}
+stepwise(
+  dat_ba, 
+  yvar = "Salary", 
+  xvars = c("Hits", "Walks", "CRuns", "HmRun", "CWalks")
+)
+```
+
+Five variables are added with `p_add = 0.5` and `p_drop = 0.5`.
+
+```{r}
+stepwise(
+  dat_ba, 
+  yvar = "Salary", 
+  xvars = c("Hits", "Walks", "CRuns", "HmRun", "CWalks"),
+  p_add = 0.5,
+  p_drop = 0.5
+)
+```
 
