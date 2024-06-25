@@ -14,10 +14,8 @@ Let us implement GBM regression estimation function by using `rpart::rpart()` tr
 
 ```{r}
 gbm_regression <- function(formula, data, ntree = 5) {
-  # average prediction as initial model
+  # get response variable name
   yvar <- all.vars(formula)[1]
-  offset <- mean(data[[yvar]])
-  data$.pred <- offset
 
   fit <- vector("list", length = ntree)
   for (i in seq_len(ntree)) {
@@ -68,4 +66,5 @@ plot(dat$X, dat$Y,
 )
 lines(dat_p$X, predict(gbm_fit, newdata = dat_p), col = "red")
 ```
+
 
