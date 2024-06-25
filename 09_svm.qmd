@@ -1,0 +1,111 @@
+# Support vector machine
+
+## Example 9.1 - 9.2
+
+### Formulate a dual problem of linear support vector machine
+
+$$
+\begin{split}
+\min \text{  } & -\mathbf{d}^{\top}\boldsymbol{\alpha} + \frac{1}{2} \boldsymbol{\alpha}^{\top}\mathbf{D}\boldsymbol{\alpha}\\
+\text{s.t. } & \mathbf{y}^{\top}\boldsymbol{\alpha} = 0\\
+             & \boldsymbol{\alpha} \ge \mathbf{0}\\
+             & \boldsymbol{\alpha} \le \mathbf{1}  \times C\\
+\end{split}
+$$
+where
+
+$$
+\begin{split}
+\mathbf{d} &= \mathbf{1}_{N \times 1}\\
+\mathbf{D} &= \mathbf{y}\mathbf{y}^{\top}\mathbf{X}\mathbf{X}^{\top}\\
+\mathbf{y} &= \left[ \begin{array}{c c c c} y_1 & y_2 & \cdots & y_N \end{array} \right]^\top\\
+\mathbf{X} &= \left[ \begin{array}{c c c c} \mathbf{x}_1 & \mathbf{x}_2 & \cdots & \mathbf{x}_N \end{array} \right]^{\top}
+\end{split}
+$$ 
+
+
+### Implement quadratic optimization function for linear support vector machine
+
+```{r}
+linear_svm <- function(y, x, C = 0) {
+  N <- length(y)
+  d <- rep(1, N)
+  D <- tcrossprod(y) * tcrossprod(x)
+  
+  # make symmetric positive definite matrix
+  D_pd <- as.matrix(Matrix::nearPD(D, doSym = TRUE)$mat)
+  
+  A <- cbind(y, diag(N))
+  bvec <- rep(0, 1 + N)
+  
+  if (C > 0) {
+    A <- cbind(A, -diag(N))
+    bvec <- c(bvec, rep(-C, N))
+  }
+  
+  qp_res <- quadprog::solve.QP(D_pd, d, A, bvec, meq = 1)
+  alpha <- qp_res$solution
+  sv <- which(alpha > 1e-5)
+  obj_value <- -qp_res$value
+  w <- crossprod(x, y * alpha)
+  
+  if (C > 0) {
+    ind <- sv[alpha[sv] < C * (1 - sqrt(.Machine$double.eps))]
+  } else {
+    ind <- sv
+  }
+  b <- mean((1 - y[ind] * (x[ind, ] %*% w)) / y[ind])
+
+  list(
+    obj_value = obj_value,
+    alpha = alpha,
+    sv = sv,
+    w = w,
+    b = b
+  )
+}
+```
+
+
+### Ex 9.1: Separable
+
+#### Load data
+
+```{r}
+dat <- read.csv("data/ch9_dat1.csv")
+dat
+```
+
+```{r}
+x <- as.matrix(dat[, c("x1", "x2")])
+y <- dat$class
+```
+
+#### Estimate a model with default cost `C = 0`
+
+```{r}
+linear_svm(y, x)
+```
+
+
+### Example 9.2: Inseparable
+
+#### Load data
+
+```{r}
+dat <- read.csv("data/ch9_dat2.csv")
+dat
+```
+
+```{r}
+x <- as.matrix(dat[, c("x1", "x2")])
+y <- dat$class
+```
+
+
+#### Estimate a model with `C = 1`
+
+
+```{r}
+linear_svm(y, x, C = 1)
+```
