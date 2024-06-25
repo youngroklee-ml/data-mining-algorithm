@@ -1,0 +1,57 @@
+# Logistic regression
+
+## Example 6.1
+
+### Load data
+
+```{r}
+dat1 <- read.csv("data/ch6_dat1.csv")
+dat1$Class <- factor(dat1$Class, levels = c("Average", "Excellent"))
+```
+
+```{r}
+x <- model.matrix(~ Break + Sleep + Circle, data = dat1)
+y <- as.numeric(dat1$Class) - 1
+```
+
+
+### Define log-likelihood function
+
+```{r}
+fn_loglik <- function(y, x, beta) {
+  beta <- as.matrix(beta, ncol = 1)
+  lincomb <- x %*% beta
+  loglik <- sum(lincomb * y) - sum(log(1 + exp(lincomb)))
+  loglik
+}
+```
+
+
+
+### Estimate logistic regression model by using `optim()`
+
+```{r}
+logistic_regression <- function(y, x) {
+  # initial setting of regression coefficients at random
+  beta_init <- runif(ncol(x))
+  
+  res <- optim(
+    beta_init, 
+    fn = fn_loglik,
+    y = y, 
+    x = x, 
+    method = "BFGS", 
+    control = list(fnscale = -1) # maximization
+  )
+  
+  names(res$par) <- colnames(x)
+  res$par
+}
+```
+
+
+```{r}
+logistic_regression(y, x)
+```
+
+
