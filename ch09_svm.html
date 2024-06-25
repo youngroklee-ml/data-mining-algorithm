@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Data mining algorithm - Regularized regression</title>
+<title>Data mining algorithm - Support vector machine</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -64,8 +64,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./ch04_dimension_reduction.html" rel="next">
-<link href="./ch02_regression.html" rel="prev">
+<link href="./ch06_logistic_regression.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -103,6 +102,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -115,7 +143,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./ch03_regularized_regression.html"><span class="chapter-title">Regularized regression</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./ch09_svm.html"><span class="chapter-title">Support vector machine</span></a></li></ol></nav>
         <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
@@ -153,7 +181,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch03_regularized_regression.html" class="sidebar-item-text sidebar-link active"><span class="chapter-title">Regularized regression</span></a>
+  <a href="./ch03_regularized_regression.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Regularized regression</span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -168,7 +196,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./ch09_svm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Support vector machine</span></a>
+  <a href="./ch09_svm.html" class="sidebar-item-text sidebar-link active"><span class="chapter-title">Support vector machine</span></a>
   </div>
 </li>
     </ul>
@@ -181,12 +209,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#examples-3.1---3.2" id="toc-examples-3.1---3.2" class="nav-link active" data-scroll-target="#examples-3.1---3.2">Examples 3.1 - 3.2</a>
+  <li><a href="#example-9.1" id="toc-example-9.1" class="nav-link active" data-scroll-target="#example-9.1">Example 9.1</a>
   <ul class="collapse">
   <li><a href="#load-data" id="toc-load-data" class="nav-link" data-scroll-target="#load-data">Load data</a></li>
-  <li><a href="#standardize-input-data-matrix" id="toc-standardize-input-data-matrix" class="nav-link" data-scroll-target="#standardize-input-data-matrix">Standardize input data matrix</a></li>
-  <li><a href="#ex-3.1-lasso" id="toc-ex-3.1-lasso" class="nav-link" data-scroll-target="#ex-3.1-lasso">Ex 3.1: Lasso</a></li>
-  <li><a href="#ex-3.2-ridge" id="toc-ex-3.2-ridge" class="nav-link" data-scroll-target="#ex-3.2-ridge">Ex 3.2: Ridge</a></li>
+  <li><a href="#formulate-a-dual-problem-of-linear-support-vector-machine" id="toc-formulate-a-dual-problem-of-linear-support-vector-machine" class="nav-link" data-scroll-target="#formulate-a-dual-problem-of-linear-support-vector-machine">Formulate a dual problem of linear support vector machine</a></li>
+  <li><a href="#implement-quadratic-optimization-function-for-linear-support-vector-machine" id="toc-implement-quadratic-optimization-function-for-linear-support-vector-machine" class="nav-link" data-scroll-target="#implement-quadratic-optimization-function-for-linear-support-vector-machine">Implement quadratic optimization function for linear support vector machine</a></li>
+  <li><a href="#estimate-a-model" id="toc-estimate-a-model" class="nav-link" data-scroll-target="#estimate-a-model">Estimate a model</a></li>
+  </ul></li>
+  <li><a href="#example-9.2-inseparable" id="toc-example-9.2-inseparable" class="nav-link" data-scroll-target="#example-9.2-inseparable">Example 9.2: Inseparable</a>
+  <ul class="collapse">
+  <li><a href="#load-data-1" id="toc-load-data-1" class="nav-link" data-scroll-target="#load-data-1">Load data</a></li>
+  <li><a href="#formulate-a-dual-problem-of-linear-support-vector-machine-1" id="toc-formulate-a-dual-problem-of-linear-support-vector-machine-1" class="nav-link" data-scroll-target="#formulate-a-dual-problem-of-linear-support-vector-machine-1">Formulate a dual problem of linear support vector machine</a></li>
+  <li><a href="#implement-quadratic-optimization-function-for-linear-support-vector-machine-1" id="toc-implement-quadratic-optimization-function-for-linear-support-vector-machine-1" class="nav-link" data-scroll-target="#implement-quadratic-optimization-function-for-linear-support-vector-machine-1">Implement quadratic optimization function for linear support vector machine</a></li>
+  <li><a href="#estimate-a-model-with-c-1" id="toc-estimate-a-model-with-c-1" class="nav-link" data-scroll-target="#estimate-a-model-with-c-1">Estimate a model with <code>C = 1</code></a></li>
   </ul></li>
   </ul>
 </nav>
@@ -196,7 +231,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title"><span class="chapter-title">Regularized regression</span></h1>
+<h1 class="title"><span class="chapter-title">Support vector machine</span></h1>
 </div>
 
 
@@ -213,112 +248,204 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="examples-3.1---3.2" class="level2">
-<h2 class="anchored" data-anchor-id="examples-3.1---3.2">Examples 3.1 - 3.2</h2>
+<section id="example-9.1" class="level2">
+<h2 class="anchored" data-anchor-id="example-9.1">Example 9.1</h2>
 <section id="load-data" class="level3">
 <h3 class="anchored" data-anchor-id="load-data">Load data</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>dat1 <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/ch3_dat1.csv"</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(dat1[, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>])</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> dat1<span class="sc">$</span>y</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="standardize-input-data-matrix" class="level3">
-<h3 class="anchored" data-anchor-id="standardize-input-data-matrix">Standardize input data matrix</h3>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>std_x <span class="ot">&lt;-</span> <span class="fu">scale</span>(x)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="ex-3.1-lasso" class="level3">
-<h3 class="anchored" data-anchor-id="ex-3.1-lasso">Ex 3.1: Lasso</h3>
-<p>Create <code>lasso()</code> function with three parameters:</p>
-<ul>
-<li><code>x</code>: input data matrix</li>
-<li><code>y</code>: a vector of response variable</li>
-<li><code>lambda</code>: amount of regularization</li>
-</ul>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>lasso <span class="ot">&lt;-</span> <span class="cf">function</span>(x, y, lambda) {</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># add intercept coefficient</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  betas <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="fu">ncol</span>(x) <span class="sc">+</span> <span class="dv">1</span>)</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># optimize coefficient to minimize objective function</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># passed as the second argument of `optim()`</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># </span><span class="al">NOTE</span><span class="co">: do not regularize intercept</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  res <span class="ot">&lt;-</span> <span class="fu">optim</span>(</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    betas,</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">function</span>(betas, x, y, lambda) {</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sum</span>((y <span class="sc">-</span> <span class="fu">cbind</span>(<span class="dv">1</span>, x) <span class="sc">%*%</span> betas)<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> lambda <span class="sc">*</span> <span class="fu">sum</span>(<span class="fu">abs</span>(betas[<span class="sc">-</span><span class="dv">1</span>]))</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> x,</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> y,</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">lambda =</span> lambda,</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"BFGS"</span></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># return cofficients estimates</span></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  res<span class="sc">$</span>par</span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>Let’s apply to example data by varying <code>lambda</code>.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>lambda <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">3</span>, <span class="at">by =</span> <span class="dv">1</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> lambda) {</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="fu">round</span>(<span class="fu">lasso</span>(std_x, y, i), <span class="dv">4</span>))</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/ch9_dat1.csv"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>dat</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.0000 2.0201 0.1339
-[1] 0.0000 1.9736 0.0875
-[1] 0.0000 1.9272 0.0410
-[1] 0.0000 1.8757 0.0008</code></pre>
+<pre><code>  x1 x2 class
+1  5  7     1
+2  4  3    -1
+3  7  8     1
+4  8  6     1
+5  3  6    -1
+6  2  5    -1
+7  6  6     1
+8  9  6     1
+9  5  4    -1</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(dat[, <span class="fu">c</span>(<span class="st">"x1"</span>, <span class="st">"x2"</span>)])</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> dat<span class="sc">$</span>class</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="formulate-a-dual-problem-of-linear-support-vector-machine" class="level3">
+<h3 class="anchored" data-anchor-id="formulate-a-dual-problem-of-linear-support-vector-machine">Formulate a dual problem of linear support vector machine</h3>
+<p><span class="math display">\[
+\begin{split}
+\min \text{  } &amp; -\mathbf{d}^{\top}\boldsymbol{\alpha} + \frac{1}{2} \boldsymbol{\alpha}^{\top}\mathbf{D}\boldsymbol{\alpha}\\
+\text{s.t. } &amp; \mathbf{y}^{\top}\boldsymbol{\alpha} = 0\\
+             &amp; \boldsymbol{\alpha} \ge \mathbf{0}
+\end{split}
+\]</span> where</p>
+<p><span class="math display">\[
+\begin{split}
+\mathbf{d} &amp;= \mathbf{1}_{N \times 1}\\
+\mathbf{D} &amp;= \mathbf{y}\mathbf{y}^{\top}\mathbf{X}\mathbf{X}^{\top}\\
+\mathbf{y} &amp;= \left[ \begin{array}{c c c c} y_1 &amp; y_2 &amp; \cdots &amp; y_N \end{array} \right]^\top\\
+\mathbf{X} &amp;= \left[ \begin{array}{c c c c} \mathbf{x}_1 &amp; \mathbf{x}_2 &amp; \cdots &amp; \mathbf{x}_N \end{array} \right]^{\top}
+\end{split}
+\]</span></p>
+</section>
+<section id="implement-quadratic-optimization-function-for-linear-support-vector-machine" class="level3">
+<h3 class="anchored" data-anchor-id="implement-quadratic-optimization-function-for-linear-support-vector-machine">Implement quadratic optimization function for linear support vector machine</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>linear_svm_separable <span class="ot">&lt;-</span> <span class="cf">function</span>(y, x) {</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  N <span class="ot">&lt;-</span> <span class="fu">length</span>(y)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  d <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span>, N)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  D <span class="ot">&lt;-</span> <span class="fu">tcrossprod</span>(y) <span class="sc">*</span> <span class="fu">tcrossprod</span>(x)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># make symmetric positive definite matrix</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  D_pd <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(Matrix<span class="sc">::</span><span class="fu">nearPD</span>(D, <span class="at">doSym =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>mat)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  A <span class="ot">&lt;-</span> <span class="fu">cbind</span>(y, <span class="fu">diag</span>(N))</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  bvec <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">1</span> <span class="sc">+</span> N)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  qp_res <span class="ot">&lt;-</span> quadprog<span class="sc">::</span><span class="fu">solve.QP</span>(D_pd, d, A, bvec, <span class="at">meq =</span> <span class="dv">1</span>)</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  alpha <span class="ot">&lt;-</span> qp_res<span class="sc">$</span>solution</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  sv <span class="ot">&lt;-</span> <span class="fu">which</span>(alpha <span class="sc">&gt;</span> <span class="fl">1e-5</span>)</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  obj_value <span class="ot">&lt;-</span> <span class="sc">-</span>qp_res<span class="sc">$</span>value</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  w <span class="ot">&lt;-</span> <span class="fu">crossprod</span>(x, y <span class="sc">*</span> alpha)</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  ind <span class="ot">&lt;-</span> sv</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  b <span class="ot">&lt;-</span> <span class="fu">mean</span>((<span class="dv">1</span> <span class="sc">-</span> y[ind] <span class="sc">*</span> (x[ind, ] <span class="sc">%*%</span> w)) <span class="sc">/</span> y[ind])</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">obj_value =</span> obj_value,</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> alpha,</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">sv =</span> sv,</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">w =</span> w,</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">b =</span> b</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="estimate-a-model" class="level3">
+<h3 class="anchored" data-anchor-id="estimate-a-model">Estimate a model</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">linear_svm_separable</span>(y, x)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$obj_value
+[1] 0.4444438
+
+$alpha
+[1]  2.234008e-01  7.809557e-12 -1.479354e-11  0.000000e+00  2.228114e-01
+[6] -1.504144e-11  2.210431e-01 -2.992210e-11  2.216325e-01
+
+$sv
+[1] 1 5 7 9
+
+$w
+        [,1]
+x1 0.6666658
+x2 0.6666657
+
+$b
+[1] -6.99999</code></pre>
 </div>
 </div>
 </section>
-<section id="ex-3.2-ridge" class="level3">
-<h3 class="anchored" data-anchor-id="ex-3.2-ridge">Ex 3.2: Ridge</h3>
-<p>Create <code>ridge()</code> function with the same three parameters:</p>
-<ul>
-<li><code>x</code>: input data matrix</li>
-<li><code>y</code>: a vector of response variable</li>
-<li><code>lambda</code>: amount of regularization</li>
-</ul>
-<p>The <code>ridge()</code> function is very similar to <code>lasso()</code>. The only difference is the regularization term in the objective function of <code>optim()</code> call.</p>
+</section>
+<section id="example-9.2-inseparable" class="level2">
+<h2 class="anchored" data-anchor-id="example-9.2-inseparable">Example 9.2: Inseparable</h2>
+<section id="load-data-1" class="level3">
+<h3 class="anchored" data-anchor-id="load-data-1">Load data</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>ridge <span class="ot">&lt;-</span> <span class="cf">function</span>(x, y, lambda) {</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># add intercept coefficient</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  betas <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="fu">ncol</span>(x) <span class="sc">+</span> <span class="dv">1</span>)</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># optimize coefficient to minimize objective function</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># passed as the second argument of `optim()`</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># </span><span class="al">NOTE</span><span class="co">: do not regularize intercept</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  res <span class="ot">&lt;-</span> <span class="fu">optim</span>(</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    betas,</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">function</span>(betas, x, y, lambda) {</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sum</span>((y <span class="sc">-</span> <span class="fu">cbind</span>(<span class="dv">1</span>, x) <span class="sc">%*%</span> betas)<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> lambda <span class="sc">*</span> <span class="fu">sum</span>((betas[<span class="sc">-</span><span class="dv">1</span>])<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> x,</span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> y,</span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">lambda =</span> lambda,</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"BFGS"</span></span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># return cofficients estimates</span></span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>  res<span class="sc">$</span>par</span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>Let’s apply to example data by varying <code>lambda</code>.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>lambda <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">3</span>, <span class="at">by =</span> <span class="dv">1</span>)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> lambda) {</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="fu">round</span>(<span class="fu">ridge</span>(std_x, y, i), <span class="dv">4</span>))</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/ch9_dat2.csv"</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>dat</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.0000 2.0201 0.1339
-[1] 0.0000 1.5071 0.4638
-[1] 0.0000 1.2688 0.5477
-[1] 0.0000 1.1177 0.5667</code></pre>
+<pre><code>   x1 x2 class
+1   5  7     1
+2   4  3    -1
+3   7  8     1
+4   8  6     1
+5   3  6    -1
+6   2  5    -1
+7   6  6     1
+8   9  6     1
+9   5  4    -1
+10  7  6    -1</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(dat[, <span class="fu">c</span>(<span class="st">"x1"</span>, <span class="st">"x2"</span>)])</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> dat<span class="sc">$</span>class</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="formulate-a-dual-problem-of-linear-support-vector-machine-1" class="level3">
+<h3 class="anchored" data-anchor-id="formulate-a-dual-problem-of-linear-support-vector-machine-1">Formulate a dual problem of linear support vector machine</h3>
+<p><span class="math display">\[
+\begin{split}
+\min \text{  } &amp; -\mathbf{d}^{\top}\boldsymbol{\alpha} + \frac{1}{2} \boldsymbol{\alpha}^{\top}\mathbf{D}\boldsymbol{\alpha}\\
+\text{s.t. } &amp; \mathbf{y}^{\top}\boldsymbol{\alpha} = 0\\
+             &amp; \boldsymbol{\alpha} \ge \mathbf{0}\\
+             &amp; \boldsymbol{\alpha} \le C\\
+\end{split}
+\]</span></p>
+</section>
+<section id="implement-quadratic-optimization-function-for-linear-support-vector-machine-1" class="level3">
+<h3 class="anchored" data-anchor-id="implement-quadratic-optimization-function-for-linear-support-vector-machine-1">Implement quadratic optimization function for linear support vector machine</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>linear_svm_inseparable <span class="ot">&lt;-</span> <span class="cf">function</span>(y, x, C) {</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  N <span class="ot">&lt;-</span> <span class="fu">length</span>(y)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  d <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span>, N)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  D <span class="ot">&lt;-</span> <span class="fu">tcrossprod</span>(y) <span class="sc">*</span> <span class="fu">tcrossprod</span>(x)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># make symmetric positive definite matrix</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  D_pd <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(Matrix<span class="sc">::</span><span class="fu">nearPD</span>(D, <span class="at">doSym =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>mat)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  A <span class="ot">&lt;-</span> <span class="fu">cbind</span>(y, <span class="fu">diag</span>(N), <span class="sc">-</span><span class="fu">diag</span>(N))</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  bvec <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">1</span> <span class="sc">+</span> N), <span class="fu">rep</span>(<span class="sc">-</span>C, N))</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  qp_res <span class="ot">&lt;-</span> quadprog<span class="sc">::</span><span class="fu">solve.QP</span>(D_pd, d, A, bvec, <span class="at">meq =</span> <span class="dv">1</span>)</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  alpha <span class="ot">&lt;-</span> qp_res<span class="sc">$</span>solution</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  sv <span class="ot">&lt;-</span> <span class="fu">which</span>(alpha <span class="sc">&gt;</span> <span class="fl">1e-5</span>)</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  obj_value <span class="ot">&lt;-</span> <span class="sc">-</span>qp_res<span class="sc">$</span>value</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  w <span class="ot">&lt;-</span> <span class="fu">crossprod</span>(x, y <span class="sc">*</span> alpha)</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (C <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    ind <span class="ot">&lt;-</span> sv[alpha[sv] <span class="sc">&lt;</span> C <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="fu">sqrt</span>(.Machine<span class="sc">$</span>double.eps))]</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>    ind <span class="ot">&lt;-</span> sv</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>  b <span class="ot">&lt;-</span> <span class="fu">mean</span>((<span class="dv">1</span> <span class="sc">-</span> y[ind] <span class="sc">*</span> (x[ind, ] <span class="sc">%*%</span> w)) <span class="sc">/</span> y[ind])</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">obj_value =</span> obj_value,</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> alpha,</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">sv =</span> sv,</span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">w =</span> w,</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">b =</span> b</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="estimate-a-model-with-c-1" class="level3">
+<h3 class="anchored" data-anchor-id="estimate-a-model-with-c-1">Estimate a model with <code>C = 1</code></h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">linear_svm_inseparable</span>(y, x, <span class="at">C =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$obj_value
+[1] 3.100058
+
+$alpha
+ [1]  7.999978e-01  3.165338e-14  2.178685e-10 -1.110220e-17  7.999978e-01
+ [6] -3.129622e-17  1.000000e+00  1.050385e-16  0.000000e+00  1.000000e+00
+
+$sv
+[1]  1  5  7 10
+
+$w
+        [,1]
+x1 0.5999956
+x2 0.7999978
+
+$b
+[1] -7.599968</code></pre>
 </div>
 </div>
 
@@ -738,14 +865,11 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./ch02_regression.html" class="pagination-link" aria-label="Regression">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-title">Regression</span></span>
+      <a href="./ch06_logistic_regression.html" class="pagination-link" aria-label="Logistic regression">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-title">Logistic regression</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./ch04_dimension_reduction.html" class="pagination-link" aria-label="Dimension reduction">
-        <span class="nav-page-text"><span class="chapter-title">Dimension reduction</span></span> <i class="bi bi-arrow-right-short"></i>
-      </a>
   </div>
 </nav>
 </div> <!-- /content -->
