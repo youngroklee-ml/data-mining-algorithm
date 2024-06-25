@@ -1,0 +1,71 @@
+# Ensemble
+
+## Example 10.5
+
+### Load data
+
+```{r}
+dat <- read.csv("data/ch10_dat3.csv")
+```
+
+### Implement gradient boosting machine (GBM) for regression
+
+Let us implement GBM regression estimation function by using `rpart::rpart()` trained on residuals in each iteration. When calling `rpart()`, pass `control = rpart::rpart.control(maxdepth = 1)` to let each tree will have up to only one split. This function will return a list of 1-depth decision trees, where the number of trees are determined by argument `ntree`. Assign additional class name `"my_gbm_reg"` to the return object, to implement a convenient prediction function later.
+
+```{r}
+gbm_regression <- function(formula, data, ntree = 5) {
+  # average prediction as initial model
+  yvar <- all.vars(formula)[1]
+  offset <- mean(data[[yvar]])
+  data$.pred <- offset
+
+  fit <- vector("list", length = ntree)
+  for (i in seq_len(ntree)) {
+    # fit a tree to predict negative gradients
+    fit[[i]] <- rpart::rpart(
+      formula,
+      data = data,
+      control = rpart::rpart.control(maxdepth = 1)
+    )
+
+    # prediction
+    data$.pred <- predict(fit[[i]], newdata = data)
+        
+    # compute negative gradient as output
+    data[[yvar]] <- data[[yvar]] - data$.pred
+  }
+  
+  class(fit) <- c("my_gbm_reg", class(fit))
+  fit
+}
+```
+
+Let us train GBM on data.
+
+```{r}
+gbm_fit <- gbm_regression(Y ~ X, dat)
+```
+
+Let us implement a prediction function for our GBM regression by setting a function name to be `predict.my_gbm_reg()` according to S3 style. Here, `"my_gbm_reg"` is a class name for our model object.
+
+```{r}
+predict.my_gbm_reg <- function(object, newdata) {
+  ntree <- length(object)
+  rowSums(sapply(gbm_fit, predict, newdata = newdata))
+}
+```
+
+Let's create prediction data that span range of X and plot prediction results as a line as well as training data as points.
+
+```{r}
+dat_p <- data.frame(
+  X = seq(min(dat$X), max(dat$X), length = 1000)
+)
+
+plot(dat$X, dat$Y,
+     pch = 16, xlab = "X", ylab = "Y",
+     main = paste0("Observed vs Prediction")
+)
+lines(dat_p$X, predict(gbm_fit, newdata = dat_p), col = "red")
+```
+
