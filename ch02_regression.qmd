@@ -40,8 +40,7 @@ stepwise <- function(data, yvar, xvars, p_add = 0.3, p_drop = 0.3, niter = 100) 
     add_step <- add1(
       current_model, 
       scope = make_formula(yvar, xvars), 
-      test = "F", 
-      k = 0
+      test = "F"
     )
   
     # select a candidate with the largest F-statistics
@@ -66,8 +65,7 @@ stepwise <- function(data, yvar, xvars, p_add = 0.3, p_drop = 0.3, niter = 100) 
     drop_step <- drop1(
       current_model, 
       scope = make_formula(yvar, included), 
-      test = "F", 
-      k = 0
+      test = "F"
     )
   
     # select a candidate with the smallest F-statistics
