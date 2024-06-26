@@ -82,6 +82,10 @@ dat$class <- dat$class - 1
 
 ### Implement gradient boosting machine (GBM) for binary classification
 
+Implement GBM classifier estimation based on [`{gbm}` vignettes](https://cran.r-project.org/web/packages/gbm/vignettes/gbm.pdf).
+
+Here we create two trees in each iteration. First, `fit` is trained to predict gradient. Afterwards, create another tree `fit_update` by copying `fit` but changing prediction value to be a score to be added. This `fit_update` tree will be used as a classifier.
+
 ```{r}
 gbm_classification <- function(formula, data, ntree = 10) {
   # get response variable name
@@ -129,6 +133,7 @@ gbm_classification <- function(formula, data, ntree = 10) {
 }
 ```
 
+Let's train a model on data `dat`.
 
 ```{r}
 gbm_fit <- gbm_classification(class ~ x1 + x2, dat)
@@ -137,12 +142,15 @@ gbm_fit <- gbm_classification(class ~ x1 + x2, dat)
 
 ### Implement prediction function
 
+To make a prediction of posterior probability, after adding predicted scores from each tree, apply `plogis()` to compute inverse logit transformation.
+
 ```{r}
 predict.my_gbm_bin <- function(object, newdata) {
   plogis(rowSums(sapply(object, predict, newdata = newdata)))
 }
 ```
 
+Let's make a prediction on new data.
 
 ```{r}
 dat_p <- expand.grid(
@@ -153,7 +161,7 @@ dat_p <- expand.grid(
 dat_p$posterior <- predict(gbm_fit, newdata = dat_p)
 ```
 
-Draw heatmap of posterior probability by two variables.
+Draw a heatmap of posterior probability by two variables.
 
 ```{r}
 x1 <- unique(dat_p$x1)
