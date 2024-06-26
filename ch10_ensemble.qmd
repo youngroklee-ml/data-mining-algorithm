@@ -52,7 +52,7 @@ Let us implement a prediction function for our GBM regression by setting a funct
 ```{r}
 predict.my_gbm_reg <- function(object, newdata) {
   ntree <- length(object)
-  rowSums(sapply(gbm_fit, predict, newdata = newdata))
+  rowSums(sapply(object, predict, newdata = newdata))
 }
 ```
 
@@ -86,14 +86,19 @@ dat$class <- dat$class - 1
 gbm_classification <- function(formula, data, ntree = 10) {
   # get response variable name
   yvar <- all.vars(formula)[1]
-  n <- nrow(data)
+  
+  # store observed response variable (binary class label)
+  y_obs <- data[[yvar]]
+  n <- length(y_obs)
   
   # initialize
   score <- rep(0, n)
   posterior <- plogis(score) # exp(score) / (1 + exp(score))
-  data[[yvar]] <- data[[yvar]] - posterior
+  data[[yvar]] <- y_obs - posterior
 
   fit <- vector("list", length = ntree)
+  fit_update <- vector("list", length = ntree)
+
   for (i in seq_len(ntree)) {
     fit[[i]] <- rpart::rpart(
       formula,
@@ -106,17 +111,21 @@ gbm_classification <- function(formula, data, ntree = 10) {
     update <- 
       ave(data[[yvar]], fit[[i]]$where, FUN = sum) /
       ave(posterior, fit[[i]]$where, FUN = \(x) sum(x * (1 - x)))
+    
+    # create new tree for prediction
+    fit_update[[i]] <- fit[[i]]
+    fit_update[[i]]$frame$yval <- 
+      c(mean(update),
+        mean(update[fit[[i]]$where == 2]), 
+        mean(update[fit[[i]]$where == 3]))
 
-    # convert back to original class value
-    data[[yvar]] <- data[[yvar]] + posterior
-        
     score <- score + update
     posterior <- plogis(score)
-    data[[yvar]] <- data[[yvar]] - posterior
+    data[[yvar]] <- y_obs - posterior
   }
   
-  class(fit) <- "my_gbm_bin"
-  fit
+  class(fit_update) <- "my_gbm_bin"
+  fit_update
 }
 ```
 
@@ -126,6 +135,30 @@ gbm_fit <- gbm_classification(class ~ x1 + x2, dat)
 ```
 
 
-### TO DO: Implement prediction function
+### Implement prediction function
 
+```{r}
+predict.my_gbm_bin <- function(object, newdata) {
+  plogis(rowSums(sapply(object, predict, newdata = newdata)))
+}
+```
+
+
+```{r}
+dat_p <- expand.grid(
+  x1 = seq(min(dat$x1), max(dat$x1), length = 100),
+  x2 = seq(min(dat$x2), max(dat$x2), length = 100)
+)
+
+dat_p$posterior <- predict(gbm_fit, newdata = dat_p)
+```
+
+Draw heatmap of posterior probability by two variables.
+
+```{r}
+x1 <- unique(dat_p$x1)
+x2 <- unique(dat_p$x2)
+posterior <- matrix(dat_p$posterior, nrow = 100)
+image(x = x1, y = x2, z = posterior)
+```
 
