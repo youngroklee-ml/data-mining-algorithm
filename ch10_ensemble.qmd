@@ -44,6 +44,9 @@ Let us train GBM on data.
 gbm_fit <- gbm_regression(Y ~ X, dat)
 ```
 
+
+### Prediction
+
 Let us implement a prediction function for our GBM regression by setting a function name to be `predict.my_gbm_reg()` according to S3 style. Here, `"my_gbm_reg"` is a class name for our model object.
 
 ```{r}
@@ -66,5 +69,63 @@ plot(dat$X, dat$Y,
 )
 lines(dat_p$X, predict(gbm_fit, newdata = dat_p), col = "red")
 ```
+
+
+## Example 10.6
+
+### Load data
+
+```{r}
+dat <- read.csv("data/ch8_dat1.csv")
+dat$class <- dat$class - 1
+```
+
+### Implement gradient boosting machine (GBM) for binary classification
+
+```{r}
+gbm_classification <- function(formula, data, ntree = 10) {
+  # get response variable name
+  yvar <- all.vars(formula)[1]
+  n <- nrow(data)
+  
+  # initialize
+  score <- rep(0, n)
+  posterior <- plogis(score) # exp(score) / (1 + exp(score))
+  data[[yvar]] <- data[[yvar]] - posterior
+
+  fit <- vector("list", length = ntree)
+  for (i in seq_len(ntree)) {
+    fit[[i]] <- rpart::rpart(
+      formula,
+      data = data,
+      control = rpart::rpart.control(
+        maxdepth = 1, minsplit = 1, cp = -Inf, minbucket = 1
+      )
+    )
+    
+    update <- 
+      ave(data[[yvar]], fit[[i]]$where, FUN = sum) /
+      ave(posterior, fit[[i]]$where, FUN = \(x) sum(x * (1 - x)))
+
+    # convert back to original class value
+    data[[yvar]] <- data[[yvar]] + posterior
+        
+    score <- score + update
+    posterior <- plogis(score)
+    data[[yvar]] <- data[[yvar]] - posterior
+  }
+  
+  class(fit) <- "my_gbm_bin"
+  fit
+}
+```
+
+
+```{r}
+gbm_fit <- gbm_classification(class ~ x1 + x2, dat)
+```
+
+
+### TO DO: Implement prediction function
 
 
