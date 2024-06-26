@@ -195,7 +195,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#load-data-1" id="toc-load-data-1" class="nav-link" data-scroll-target="#load-data-1">Load data</a></li>
   <li><a href="#implement-gradient-boosting-machine-gbm-for-binary-classification" id="toc-implement-gradient-boosting-machine-gbm-for-binary-classification" class="nav-link" data-scroll-target="#implement-gradient-boosting-machine-gbm-for-binary-classification">Implement gradient boosting machine (GBM) for binary classification</a></li>
-  <li><a href="#to-do-implement-prediction-function" id="toc-to-do-implement-prediction-function" class="nav-link" data-scroll-target="#to-do-implement-prediction-function">TO DO: Implement prediction function</a></li>
+  <li><a href="#implement-prediction-function" id="toc-implement-prediction-function" class="nav-link" data-scroll-target="#implement-prediction-function">Implement prediction function</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -269,7 +269,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>predict.my_gbm_reg <span class="ot">&lt;-</span> <span class="cf">function</span>(object, newdata) {</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  ntree <span class="ot">&lt;-</span> <span class="fu">length</span>(object)</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowSums</span>(<span class="fu">sapply</span>(gbm_fit, predict, <span class="at">newdata =</span> newdata))</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowSums</span>(<span class="fu">sapply</span>(object, predict, <span class="at">newdata =</span> newdata))</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Let’s create prediction data that span range of X and plot prediction results as a line as well as training data as points.</p>
@@ -308,45 +308,81 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>gbm_classification <span class="ot">&lt;-</span> <span class="cf">function</span>(formula, data, <span class="at">ntree =</span> <span class="dv">10</span>) {</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># get response variable name</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  yvar <span class="ot">&lt;-</span> <span class="fu">all.vars</span>(formula)[<span class="dv">1</span>]</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fu">nrow</span>(data)</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># initialize</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  score <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, n)</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  posterior <span class="ot">&lt;-</span> <span class="fu">plogis</span>(score) <span class="co"># exp(score) / (1 + exp(score))</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  data[[yvar]] <span class="ot">&lt;-</span> data[[yvar]] <span class="sc">-</span> posterior</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  fit <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">"list"</span>, <span class="at">length =</span> ntree)</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(ntree)) {</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    fit[[i]] <span class="ot">&lt;-</span> rpart<span class="sc">::</span><span class="fu">rpart</span>(</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>      formula,</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>      <span class="at">data =</span> data,</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>      <span class="at">control =</span> rpart<span class="sc">::</span><span class="fu">rpart.control</span>(</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">maxdepth =</span> <span class="dv">1</span>, <span class="at">minsplit =</span> <span class="dv">1</span>, <span class="at">cp =</span> <span class="sc">-</span><span class="cn">Inf</span>, <span class="at">minbucket =</span> <span class="dv">1</span></span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    update <span class="ot">&lt;-</span> </span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ave</span>(data[[yvar]], fit[[i]]<span class="sc">$</span>where, <span class="at">FUN =</span> sum) <span class="sc">/</span></span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ave</span>(posterior, fit[[i]]<span class="sc">$</span>where, <span class="at">FUN =</span> \(x) <span class="fu">sum</span>(x <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> x)))</span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># convert back to original class value</span></span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    data[[yvar]] <span class="ot">&lt;-</span> data[[yvar]] <span class="sc">+</span> posterior</span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>    score <span class="ot">&lt;-</span> score <span class="sc">+</span> update</span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>    posterior <span class="ot">&lt;-</span> <span class="fu">plogis</span>(score)</span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    data[[yvar]] <span class="ot">&lt;-</span> data[[yvar]] <span class="sc">-</span> posterior</span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">class</span>(fit) <span class="ot">&lt;-</span> <span class="st">"my_gbm_bin"</span></span>
-<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>  fit</span>
-<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># store observed response variable (binary class label)</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  y_obs <span class="ot">&lt;-</span> data[[yvar]]</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fu">length</span>(y_obs)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># initialize</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  score <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, n)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  posterior <span class="ot">&lt;-</span> <span class="fu">plogis</span>(score) <span class="co"># exp(score) / (1 + exp(score))</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  data[[yvar]] <span class="ot">&lt;-</span> y_obs <span class="sc">-</span> posterior</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  fit <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">"list"</span>, <span class="at">length =</span> ntree)</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  fit_update <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">"list"</span>, <span class="at">length =</span> ntree)</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(ntree)) {</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    fit[[i]] <span class="ot">&lt;-</span> rpart<span class="sc">::</span><span class="fu">rpart</span>(</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>      formula,</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>      <span class="at">data =</span> data,</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>      <span class="at">control =</span> rpart<span class="sc">::</span><span class="fu">rpart.control</span>(</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>        <span class="at">maxdepth =</span> <span class="dv">1</span>, <span class="at">minsplit =</span> <span class="dv">1</span>, <span class="at">cp =</span> <span class="sc">-</span><span class="cn">Inf</span>, <span class="at">minbucket =</span> <span class="dv">1</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    update <span class="ot">&lt;-</span> </span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ave</span>(data[[yvar]], fit[[i]]<span class="sc">$</span>where, <span class="at">FUN =</span> sum) <span class="sc">/</span></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ave</span>(posterior, fit[[i]]<span class="sc">$</span>where, <span class="at">FUN =</span> \(x) <span class="fu">sum</span>(x <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> x)))</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    <span class="co"># create new tree for prediction</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>    fit_update[[i]] <span class="ot">&lt;-</span> fit[[i]]</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>    fit_update[[i]]<span class="sc">$</span>frame<span class="sc">$</span>yval <span class="ot">&lt;-</span> </span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>      <span class="fu">c</span>(<span class="fu">mean</span>(update),</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(update[fit[[i]]<span class="sc">$</span>where <span class="sc">==</span> <span class="dv">2</span>]), </span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>        <span class="fu">mean</span>(update[fit[[i]]<span class="sc">$</span>where <span class="sc">==</span> <span class="dv">3</span>]))</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>    score <span class="ot">&lt;-</span> score <span class="sc">+</span> update</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>    posterior <span class="ot">&lt;-</span> <span class="fu">plogis</span>(score)</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>    data[[yvar]] <span class="ot">&lt;-</span> y_obs <span class="sc">-</span> posterior</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">class</span>(fit_update) <span class="ot">&lt;-</span> <span class="st">"my_gbm_bin"</span></span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>  fit_update</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>gbm_fit <span class="ot">&lt;-</span> <span class="fu">gbm_classification</span>(class <span class="sc">~</span> x1 <span class="sc">+</span> x2, dat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="to-do-implement-prediction-function" class="level3">
-<h3 class="anchored" data-anchor-id="to-do-implement-prediction-function">TO DO: Implement prediction function</h3>
+<section id="implement-prediction-function" class="level3">
+<h3 class="anchored" data-anchor-id="implement-prediction-function">Implement prediction function</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>predict.my_gbm_bin <span class="ot">&lt;-</span> <span class="cf">function</span>(object, newdata) {</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plogis</span>(<span class="fu">rowSums</span>(<span class="fu">sapply</span>(object, predict, <span class="at">newdata =</span> newdata)))</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>dat_p <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">x1 =</span> <span class="fu">seq</span>(<span class="fu">min</span>(dat<span class="sc">$</span>x1), <span class="fu">max</span>(dat<span class="sc">$</span>x1), <span class="at">length =</span> <span class="dv">100</span>),</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">x2 =</span> <span class="fu">seq</span>(<span class="fu">min</span>(dat<span class="sc">$</span>x2), <span class="fu">max</span>(dat<span class="sc">$</span>x2), <span class="at">length =</span> <span class="dv">100</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>dat_p<span class="sc">$</span>posterior <span class="ot">&lt;-</span> <span class="fu">predict</span>(gbm_fit, <span class="at">newdata =</span> dat_p)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Draw heatmap of posterior probability by two variables.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">unique</span>(dat_p<span class="sc">$</span>x1)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">unique</span>(dat_p<span class="sc">$</span>x2)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>posterior <span class="ot">&lt;-</span> <span class="fu">matrix</span>(dat_p<span class="sc">$</span>posterior, <span class="at">nrow =</span> <span class="dv">100</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">image</span>(<span class="at">x =</span> x1, <span class="at">y =</span> x2, <span class="at">z =</span> posterior)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="ch10_ensemble_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
 
 
 </section>
