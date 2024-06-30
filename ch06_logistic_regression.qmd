@@ -55,3 +55,74 @@ logistic_regression(y, x)
 ```
 
 
+### Interatively reweighted least squares; IRLS
+
+```{r}
+predict_prob <- function(x, beta) {
+  # P(y = 1 | x)
+  p <- drop(plogis(x %*% beta)) # (1 + exp(-x %*% beta))^(-1)
+
+  p
+}
+```
+
+```{r}
+fit_weighted_least_squares <- function(y, x, p) {
+  # exclude if p is 0 or 1, (i.e. w is 0)
+  w <- p * (1 - p)
+  logit_derivative <- 1 / w
+  is_good <- !is.nan(logit_derivative)
+  
+  # return NULL if all p's are 0 or 1
+  if (all(!is_good)) return(NULL)
+  
+  # use subset of data
+  y <- y[is_good]
+  x <- x[is_good, ]
+  p <- p[is_good]
+  w <- w[is_good]
+  logit_derivative <- logit_derivative[is_good]
+  
+  # Taylor expansion
+  g_y <- log(p) - log(1 - p) + (y - p) * logit_derivative
+  # print(g_y)
+  
+  # fit weighted least squares
+  lm.wfit(x, g_y, w)
+}
+```
+
+
+```{r}
+logistic_regression_IRLS <- function(y, x, beta = NULL, niter = 100) {
+  # initialize
+  if (is.null(beta)) {
+    beta <- rep(0, ncol(x))
+  }
+  p <- predict_prob(x, beta)
+  
+  for (i in seq_len(niter)) {
+    # estimated weighted least squares based on Taylor expansion
+    wls_fit <- fit_weighted_least_squares(y, x, p)
+  
+    # estimation failure
+    if (is.null(wls_fit)) return(NULL)
+
+    # re-estimate probability
+    new_p <- predict_prob(x, coef(wls_fit))
+
+    # conversions
+    if (max(abs(new_p - p)) < 1e-4) break
+  
+    # update estimated probability for next iteration
+    p <- new_p
+  }
+
+  coef(wls_fit)
+}
+```
+
+```{r}
+logistic_regression_IRLS(y, x)
+```
+
