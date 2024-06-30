@@ -13,6 +13,7 @@ book:
     - ch06_logistic_regression.qmd
     - ch09_svm.qmd
     - ch10_ensemble.qmd
+  repo-url: https://github.com/youngroklee-ml/data-mining-algorithm
 
 number-sections: false
 
