@@ -1,0 +1,63 @@
+# Non-hierarchical clustering
+
+## Example 13.1
+
+### Load data
+
+```{r}
+dat1 <- read.csv("data/ch12_dat1.csv")
+x <- model.matrix(~ X1 + X2 - 1, dat = dat1)
+```
+
+### K-means clustering
+
+```{r}
+assign_cluster <- function(x, cluster_center) {
+  ind <- apply(flexclust::dist2(x, cluster_center), 1, which.min)
+  lapply(unique(ind), \(m) unname(which(ind == m)))
+}
+```
+
+```{r}
+update_cluster <- function(x, cluster_assignment) {
+  center <- lapply(
+    cluster_assignment, 
+    \(rows) colMeans(x[rows, , drop = FALSE])
+  )
+  do.call(rbind, center)
+}
+```
+
+
+```{r}
+kmeans_cluster <- function(x, k = 2, niter = 100) {
+  n <- nrow(x)
+  k <- min(k, n)
+
+  # initialize cluster centers
+  cluster_center <- x[sample.int(n, size = k), , drop = FALSE]
+  
+  for (i in seq_len(niter)) {
+    cluster_assignment <- assign_cluster(x, cluster_center)
+    new_cluster_center <- update_cluster(x, cluster_assignment)
+
+    # check convergence
+    if (identical(cluster_center, new_cluster_center)) break
+    
+    # update cluster center
+    cluster_center <- new_cluster_center
+  }
+  
+  list(
+    cluster_centers = cluster_center,
+    cluster_assignment = cluster_assignment,
+    n_iteration = i
+  )
+}
+```
+
+
+```{r}
+kmeans_cluster(x, k = 3)
+```
+
